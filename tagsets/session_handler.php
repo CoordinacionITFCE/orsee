@@ -32,6 +32,22 @@ function orsee_session_register_handler() {
     global $settings__server_url, $settings__root_directory;
     global $site__database_host, $site__database_database, $site__database_table_prefix;
 
+    // Fortalecer cookies de sesión
+    ini_set('session.use_only_cookies', 1);
+    ini_set('session.use_strict_mode', 1);
+    ini_set('session.cookie_httponly', 1);
+    ini_set('session.cookie_samesite', 'Lax');
+
+    $is_secure = false;
+    if (isset($_SERVER['HTTPS']) && ($_SERVER['HTTPS'] === 'on' || $_SERVER['HTTPS'] == 1)) {
+        $is_secure = true;
+    } elseif (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') {
+        $is_secure = true;
+    }
+    if ($is_secure) {
+        ini_set('session.cookie_secure', 1);
+    }
+
     $session_scope_seed=
         (string)$settings__server_url.'|'.
         (string)$settings__root_directory.'|'.

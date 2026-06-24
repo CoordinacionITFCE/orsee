@@ -96,7 +96,13 @@ function or_query($query,$pars=array()) {
             $stmt = $db->query($query);
         }
     } catch (PDOException $e) {
-        show_message('<pre>Query error: ' . $e->getMessage(). "\nQuery: ".$query."</pre>");
+        error_log('ORSEE Database Query Error: ' . $e->getMessage() . ' | Query: ' . $query . ' | Params: ' . json_encode($pars));
+        global $settings__query_debugging_enabled;
+        if (isset($settings__query_debugging_enabled) && $settings__query_debugging_enabled == 'y') {
+            show_message('<pre>Query error: ' . htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8') . "\nQuery: " . htmlspecialchars($query, ENT_QUOTES, 'UTF-8') . "</pre>");
+        } else {
+            show_message('A database error occurred. Please contact the administrator.');
+        }
         $stmt=false;
     }
     $end=stop_query_timer($id);
