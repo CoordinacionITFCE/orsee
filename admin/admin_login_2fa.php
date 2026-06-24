@@ -67,6 +67,8 @@ if ($proceed) {
                 }
                 $proceed = false;
             } else {
+                admin__track_unsuccessful_login($admin);
+                log__admin("login_2fa_failed", "username:".$admin['adminname']);
                 message('Invalid verification code or backup code. Please try again.', 'error');
                 redirect("admin/admin_login_2fa.php");
                 $proceed = false;
