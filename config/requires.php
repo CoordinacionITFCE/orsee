@@ -1,6 +1,8 @@
 <?php
 // part of orsee. see orsee.org
 
+require_once __DIR__ . '/../vendor/autoload.php';
+
 // Including tagsets
 require "orsee_mysql.php";
 require "site.php";
@@ -19,9 +21,6 @@ require "participant.php";
 require "query.php";
 require "query_modules.php";
 require "formhelpers.php";
-require_once "classException.php";
-require_once "classPHPMailer.php";
-require_once "classSMTP.php";
 require "experimentmail.php";
 require "mailqueue.php";
 require "calendar.php";

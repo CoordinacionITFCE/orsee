@@ -22,22 +22,35 @@ if ($proceed) {
         }
         $logged_in=admin__check_login($_REQUEST['adminname'],$_REQUEST['password']);
         if ($logged_in) {
-            $expadmindata['admin_id']=$_SESSION['expadmindata']['admin_id'];
-            log__admin("login");
-            if (isset($_REQUEST['requested_url']) && $_REQUEST['requested_url']) {
-                $requested_host = parse_url(urldecode($_REQUEST['requested_url']), PHP_URL_HOST);
-                $server_host = $_SERVER['HTTP_HOST'];
+            $admin = orsee_db_load_array("admin", $_SESSION['expadmindata']['admin_id'], "admin_id");
+            if (isset($admin['twofa_enabled']) && $admin['twofa_enabled'] == 1) {
+                $_SESSION['temp_expadmindata'] = $_SESSION['expadmindata'];
+                unset($_SESSION['expadmindata']);
+                
+                if (isset($_REQUEST['requested_url']) && $_REQUEST['requested_url']) {
+                    $_SESSION['temp_requested_url'] = $_REQUEST['requested_url'];
+                }
+                
+                redirect("admin/admin_login_2fa.php");
+                $proceed = false;
+            } else {
+                $expadmindata['admin_id']=$_SESSION['expadmindata']['admin_id'];
+                log__admin("login");
+                if (isset($_REQUEST['requested_url']) && $_REQUEST['requested_url']) {
+                    $requested_host = parse_url(urldecode($_REQUEST['requested_url']), PHP_URL_HOST);
+                    $server_host = $_SERVER['HTTP_HOST'];
 
-                if (
-                    (!preg_match("/^(http:\/\/|https:\/\/)/i",urldecode($_REQUEST['requested_url']))) ||
-                    $requested_host == $server_host
-                ) {
-                    redirect(urldecode($_REQUEST['requested_url']));
+                    if (
+                        (!preg_match("/^(http:\/\/|https:\/\/)/i",urldecode($_REQUEST['requested_url']))) ||
+                        $requested_host == $server_host
+                    ) {
+                        redirect(urldecode($_REQUEST['requested_url']));
+                    } else {
+                        redirect("admin/index.php");
+                    }
                 } else {
                     redirect("admin/index.php");
                 }
-            } else {
-                redirect("admin/index.php");
             }
         } else {
             message(lang('error_password_or_username'),'error');

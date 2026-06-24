@@ -2291,4 +2291,29 @@ $system__database_upgrades[]=array(
     )
 );
 
+// 2FA Database migrations
+$system__database_upgrades[]=array(
+'version'=>'2026062400',
+'type'=>'query',
+'specs'=> array(
+    'query_code'=>'ALTER TABLE TABLE(admin) ADD COLUMN twofa_secret VARCHAR(32) NULL'
+    )
+);
+
+$system__database_upgrades[]=array(
+'version'=>'2026062400',
+'type'=>'query',
+'specs'=> array(
+    'query_code'=>'ALTER TABLE TABLE(admin) ADD COLUMN twofa_enabled TINYINT(1) DEFAULT 0'
+    )
+);
+
+$system__database_upgrades[]=array(
+'version'=>'2026062400',
+'type'=>'query',
+'specs'=> array(
+    'query_code'=>'ALTER TABLE TABLE(admin) ADD COLUMN twofa_backup_codes TEXT NULL'
+    )
+);
+
 ?>

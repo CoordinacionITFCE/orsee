@@ -1,0 +1,12 @@
+{
+    "name": "orsee/orsee",
+    "description": "Online Recruitment System for Economic Experiments",
+    "type": "project",
+    "require": {
+        "php": ">=5.5.0",
+        "phpmailer/phpmailer": "^7.0",
+        "phplot/phplot": "8.0.0-rc1",
+        "rospdf/pdf-php": "^0.12.0",
+        "robthree/twofactorauth": "^2.0"
+    }
+}

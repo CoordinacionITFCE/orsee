@@ -114,7 +114,7 @@ function pdfoutput__make_part_list($experiment_id,$session_id="",$pstatus="",$fo
     }
 
     // prepare pdf
-    include_once('../tagsets/class.ezpdf.php');
+    // Cezpdf is autoloaded by Composer
 
     $pdf = new Cezpdf('a4','landscape');
 
@@ -161,7 +161,7 @@ function pdfoutput__make_pdf_calendar($displayfrom=0,$wholeyear=false,$admin=fal
     }
 
     // prepare pdf
-    include_once('../tagsets/class.ezpdf.php');
+    // Cezpdf is autoloaded by Composer
 
     $pdf = new Cezpdf('a4');
 

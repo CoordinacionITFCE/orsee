@@ -4,8 +4,7 @@ ob_start();
 
 include("nonoutputheader.php");
 if ($proceed) {
-    //Include the code
-    include("../tagsets/class.phplot.php");
+    // PHPlot is autoloaded by Composer
 
     $stat=array();
 

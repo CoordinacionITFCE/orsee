@@ -136,6 +136,56 @@ if ($proceed) {
     }
 }
 
+if ($proceed && $admin_id) {
+    if (isset($_REQUEST['submit_enable_2fa'])) {
+        if (!csrf__validate_request_message()) {
+            redirect("admin/admin_edit.php?admin_id=".$admin_id);
+            $proceed=false;
+        }
+        if ($proceed) {
+            $code = isset($_REQUEST['twofa_code']) ? trim($_REQUEST['twofa_code']) : '';
+            $secret = isset($_SESSION['temp_twofa_secret']) ? $_SESSION['temp_twofa_secret'] : '';
+            if (admin__twofa_verify($secret, $code)) {
+                // Generate backup codes
+                $backup_codes = array();
+                for ($i=0; $i<8; $i++) {
+                    $backup_codes[] = rand(10000000, 99999999);
+                }
+                $backup_codes_str = implode(' ', $backup_codes);
+                
+                // Save to DB
+                $pars=array(':admin_id'=>$admin_id, ':secret'=>$secret, ':backup_codes'=>$backup_codes_str);
+                $query="UPDATE ".table('admin')." SET twofa_secret=:secret, twofa_enabled=1, twofa_backup_codes=:backup_codes WHERE admin_id=:admin_id";
+                or_query($query, $pars);
+                
+                unset($_SESSION['temp_twofa_secret']);
+                $_SESSION['show_backup_codes'] = $backup_codes_str;
+                message('Two-Factor Authentication enabled successfully!', 'message');
+                log__admin("admin_2fa_enable", $admin['adminname']);
+                redirect("admin/admin_edit.php?admin_id=".$admin_id);
+                $proceed=false;
+            } else {
+                message('Invalid 2FA code. Please try again.', 'error');
+            }
+        }
+    }
+    
+    if (isset($_REQUEST['submit_disable_2fa'])) {
+        if (!csrf__validate_request_message()) {
+            redirect("admin/admin_edit.php?admin_id=".$admin_id);
+            $proceed=false;
+        }
+        if ($proceed) {
+            $query="UPDATE ".table('admin')." SET twofa_secret=NULL, twofa_enabled=0, twofa_backup_codes=NULL WHERE admin_id=:admin_id";
+            or_query($query, array(':admin_id'=>$admin_id));
+            message('Two-Factor Authentication disabled successfully.', 'message');
+            log__admin("admin_2fa_disable", $admin['adminname']);
+            redirect("admin/admin_edit.php?admin_id=".$admin_id);
+            $proceed=false;
+        }
+    }
+}
+
 if ($proceed) {
     show_message();
     $admin_password_dir=($settings['force_ltr_admin_login_password']==='y' ? ' dir="ltr"' : '');
@@ -440,6 +490,77 @@ if ($proceed) {
                 </div>';
     }
 }
+
+if ($proceed && $admin_id && $admin_id == $expadmindata['admin_id']) {
+    // Show backup codes if just enabled
+    if (isset($_SESSION['show_backup_codes'])) {
+        $codes = explode(' ', $_SESSION['show_backup_codes']);
+        unset($_SESSION['show_backup_codes']);
+        echo '  <div class="orsee-panel" style="border: 2px solid #ff3860;">
+                    <div class="orsee-panel-title" style="background-color: #ff3860; color: white;">Two-Factor Authentication Backup Codes</div>
+                    <div class="orsee-content">
+                        <div class="orsee-callout orsee-message-box orsee-callout-warning">
+                            <strong>IMPORTANT:</strong> Save these backup codes in a safe place. You can use them to log in if you lose access to your authenticator app. Each code can only be used once.
+                        </div>
+                        <div style="font-family: monospace; font-size: 1.2rem; margin: 1rem 0; display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">';
+        foreach ($codes as $c) {
+            echo '          <div style="background: #f5f5f5; padding: 0.5rem; text-align: center; border-radius: 4px;">'.$c.'</div>';
+        }
+        echo '          </div>
+                    </div>
+                </div><br>';
+    }
+
+    echo '  <div class="orsee-panel">
+                <div class="orsee-panel-title">Two-Factor Authentication (2FA)</div>
+                <div class="orsee-content">';
+                
+    if ($admin['twofa_enabled']) {
+        echo '      <p>Two-factor authentication is currently <strong style="color: green;">ENABLED</strong> on your account.</p><br>';
+        echo '      <form method="post" action="admin_edit.php">';
+        echo '          <input type="hidden" name="admin_id" value="'.$admin_id.'">';
+        echo '          '.csrf__field();
+        echo '          <button type="submit" name="submit_disable_2fa" value="1" class="button is-danger" onclick="return confirm(\'Are you sure you want to disable 2FA? This will make your account less secure.\');">Disable 2FA</button>';
+        echo '      </form>';
+    } else {
+        if (!isset($_SESSION['temp_twofa_secret'])) {
+            $tfa = admin__twofa_get_instance();
+            $_SESSION['temp_twofa_secret'] = $tfa->createSecret();
+        }
+        $temp_secret = $_SESSION['temp_twofa_secret'];
+        $qr_uri = admin__twofa_get_qr_uri($admin['adminname'], $temp_secret);
+        
+        echo '      <p>Two-factor authentication is currently <strong>DISABLED</strong> on your account.</p><br>';
+        echo '      <div class="columns" style="display: flex; gap: 2rem; flex-wrap: wrap;">';
+        echo '          <div class="column" style="text-align: center;">';
+        echo '              <img src="'.$qr_uri.'" alt="2FA QR Code" style="border: 1px solid #ccc; padding: 0.5rem; border-radius: 4px; background: white;"><br>';
+        echo '              <code style="font-size: 1.1rem; display: inline-block; margin-top: 0.5rem;">Secret: '.$temp_secret.'</code>';
+        echo '          </div>';
+        echo '          <div class="column" style="flex: 1; min-width: 250px;">';
+        echo '              <p>To enable 2FA, please follow these steps:</p>';
+        echo '              <ol style="margin-left: 1.5rem; margin-top: 0.5rem; margin-bottom: 1rem; list-style-type: decimal;">';
+        echo '                  <li>Scan the QR code using your authenticator app (Google Authenticator, Authy, Microsoft Authenticator, etc.).</li>';
+        echo '                  <li>Enter the 6-digit verification code generated by the app below.</li>';
+        echo '              </ol>';
+        echo '              <form method="post" action="admin_edit.php">';
+        echo '                  <input type="hidden" name="admin_id" value="'.$admin_id.'">';
+        echo '                  '.csrf__field();
+        echo '                  <div class="field" style="max-width: 200px; margin-bottom: 1rem;">';
+        echo '                      <label class="label">Verification Code:</label>';
+        echo '                      <div class="control">';
+        echo '                          <input class="input is-primary orsee-input" type="text" name="twofa_code" maxlength="6" placeholder="123456" autocomplete="off" style="text-align: center; font-size: 1.2rem; letter-spacing: 0.2rem;">';
+        echo '                      </div>';
+        echo '                  </div>';
+        echo '                  <button type="submit" name="submit_enable_2fa" value="1" class="button orsee-btn">Enable 2FA</button>';
+        echo '              </form>';
+        echo '          </div>';
+        echo '      </div>';
+    }
+    
+    echo '      </div>
+            </div><br>';
+}
+
 include("footer.php");
 
 ?>

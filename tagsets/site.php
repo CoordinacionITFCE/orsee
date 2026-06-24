@@ -566,5 +566,22 @@ function or_load_url($host,$file) {
     return $return;
 }
 
+// Two-Factor Authentication helper functions
+function admin__twofa_get_instance() {
+    return new \RobThree\Auth\TwoFactorAuth('ORSEE Admin');
+}
+
+function admin__twofa_verify($secret, $code) {
+    if (!$secret) {
+        return false;
+    }
+    $tfa = admin__twofa_get_instance();
+    return $tfa->verifyCode($secret, $code);
+}
+
+function admin__twofa_get_qr_uri($username, $secret) {
+    $tfa = admin__twofa_get_instance();
+    return $tfa->getQRCodeImageAsDataUri($username, $secret);
+}
 
 ?>

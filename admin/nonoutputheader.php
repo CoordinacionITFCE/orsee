@@ -27,7 +27,7 @@ if ($proceed) {
     }
 
     // Check for login
-    if ((!(isset($expadmindata['adminname']) && $expadmindata['adminname'])) && $document!="admin_login.php") {
+    if ((!(isset($expadmindata['adminname']) && $expadmindata['adminname'])) && $document!="admin_login.php" && $document!="admin_login_2fa.php") {
         redirect("admin/admin_login.php");
         $proceed=false;
     }
