@@ -74,8 +74,9 @@ if ($proceed) {
 
                 // delete admin type
                 $query="DELETE FROM ".table('admin_types')."
-                        WHERE type_id='".$type_id."'";
-                $done=or_query($query);
+                        WHERE type_id=:type_id";
+                $pars_del=array(':type_id'=>$type_id);
+                $done=or_query($query,$pars_del);
 
                 // bye, bye
                 message(lang('admin_type_deleted').': '.$type['type_name']);

@@ -79,11 +79,19 @@ if ($proceed) {
                 $upload['experiment_id']=$experiment_id;
                 $upload['session_id']=$_REQUEST['session_id'];
                 $upload['upload_type']=$_REQUEST['upload_type'];
-                $upload['upload_name']=$_REQUEST['upload_name'];
+                // Sanitizar nombre del archivo
+                $upload['upload_name']=preg_replace('/[\r\n\t"\'<>]/', '_', $_REQUEST['upload_name']);
                 $upload['upload_filesize']=$file['size'];
 
                 $done=preg_match("/.*\.([^\.]*)$/",$file['name'],$matches);
-                $upload['upload_suffix']=$matches[1];
+                $suffix = isset($matches[1]) ? strtolower($matches[1]) : '';
+                $allowed_extensions = array('pdf', 'txt', 'csv', 'png', 'jpg', 'jpeg', 'gif');
+                if (!in_array($suffix, $allowed_extensions)) {
+                    $continue=false;
+                    message('Error: file extension not allowed. Only PDF, TXT, CSV, and images are permitted.', 'error');
+                    redirect($redirect_target);
+                }
+                $upload['upload_suffix']=$suffix;
 
                 if ($file['type']) {
                     $upload['upload_mimetype']=$file['type'];
