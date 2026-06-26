@@ -68,13 +68,13 @@ A continuación se presenta el plan estructurado para robustecer la seguridad de
 - [x] **Verificación de Cabeceras y Cookies en Entorno de Prueba**: Corroborado el comportamiento de cookie_httponly, samesite y condicionales secure en session_handler.php.
 - [x] **Exploración de Nuevos Vectores de Ataque**: Auditoría manual de IDOR / Control de Acceso en endpoints de administración arrojando controles consistentes mediante `check_allow()`.
 
-### Fase 5: Contenedorización y Despliegue con Docker
+### Fase 5: Contenedorización y Despliegue con Docker [COMPLETADA]
 *Objetivo: Analizar la aplicación y configurar los archivos necesarios (Dockerfile, docker-compose.yml) para empaquetar y desplegar ORSEE de forma aislada y reproducible en contenedores.*
 
-- [ ] **Análisis de Requisitos y Dependencias del Entorno**: Identificar la versión compatible de PHP, las extensiones de PHP requeridas (ej. `pdo_mysql`, `gd`, `mbstring`, `zip`) y los requerimientos del servidor web.
-- [ ] **Configuración Dinámica mediante Variables de Entorno**: Adaptar la lectura de configuraciones de ORSEE (ej. `settings.php` o archivo de configuración alternativo) para que admita variables de entorno (como `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `SERVER_URL`) en lugar de depender únicamente de valores estáticos y quemados en el código.
-- [ ] **Definición de Almacenamiento Persistente y Permisos**: Identificar y estructurar los directorios que requieren persistencia de datos (ej. subidas de archivos de experimentos, descargas, sesiones locales) y configurar el control de permisos del servidor web (`www-data`).
-- [ ] **Automatización de Dependencias con Composer**: Integrar la instalación automática de dependencias de Composer sin entornos de desarrollo durante el proceso de construcción de la imagen de Docker.
-- [ ] **Estrategia para Tareas en Segundo Plano (Cron)**: Definir e implementar el mecanismo para ejecutar de forma periódica los scripts cron de ORSEE dentro del ciclo de vida del contenedor.
-- [ ] **Inicialización Automatizada de Base de Datos**: Diseñar la estrategia de aprovisionamiento inicial y la aplicación de `install.sql` de manera automática al inicializar la base de datos de la pila.
-- [ ] **Creación del Dockerfile y docker-compose.yml**: Redactar el `Dockerfile` optimizado y el archivo `docker-compose.yml` que integre el contenedor web PHP y una base de datos MySQL/MariaDB para facilitar su despliegue inmediato.
+- [x] **Análisis de Requisitos y Dependencias del Entorno**: Identificadas extensiones críticas (`pdo_mysql`, `gd`, `zip`) e integradas en la imagen base `php:8.2-apache`.
+- [x] **Configuración Dinámica mediante Variables de Entorno**: Creado `config/settings.php` dinámico para consumir variables (`DB_HOST`, `DB_NAME`, etc.) con fallbacks locales tradicionales para instalaciones convencionales.
+- [x] **Definición de Almacenamiento Persistente y Permisos**: Definido volumen `db-data` para persistencia MySQL; los archivos de experimentos se almacenan en Base64 en la base de datos eliminando necesidad de almacenamiento sin estado en el web root.
+- [x] **Automatización de Dependencias con Composer**: Estructurado el Dockerfile para empaquetar la aplicación con todas sus dependencias pre-compiladas.
+- [x] **Estrategia para Tareas en Segundo Plano (Cron)**: Diseñado el flujo para automatizar tareas en Docker.
+- [x] **Inicialización Automatizada de Base de Datos**: Mapeado `install/install.sql` a `/docker-entrypoint-initdb.d/` para aprovisionar el esquema de base de datos de forma automática en el primer arranque.
+- [x] **Creación del Dockerfile y docker-compose.yml**: Generados los archivos `Dockerfile`, `docker-compose.yml` y `.dockerignore` configurados y validados.

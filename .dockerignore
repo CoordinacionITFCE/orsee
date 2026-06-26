@@ -1,0 +1,14 @@
+.git
+.gitignore
+Dockerfile
+docker-compose.yml
+.dockerignore
+composer.phar
+.gitattributes
+README.md
+LICENSE
+CHANGELOG
+CREDITS
+INSTALL.howto
+UPGRADE.howto
+*.log
